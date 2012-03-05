@@ -1,0 +1,454 @@
+// Mixins.less
+// Snippets of reusable CSS to develop faster and keep code readable
+// -----------------------------------------------------------------
+
+
+// UTILITY MIXINS
+// --------------------------------------------------
+
+// Clearfix
+// --------
+// For clearing floats like a boss h5bp.com/q
+.clearfix {
+  @include legacy-pie-clearfix;
+}
+
+// Webkit-style focus
+// ------------------
+@mixin tab-focus {
+  // Default
+  outline: thin dotted #333;
+  // Webkit
+  outline: 5px auto -webkit-focus-ring-color;
+  outline-offset: -2px;
+}
+
+// Center-align a block level element
+// ----------------------------------
+@mixin center-block {
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+// IE7 inline-block
+// ----------------
+@mixin ie7-inline-block {
+  *display: inline; /* IE7 inline-block hack */
+  *zoom: 1;
+}
+
+// IE7 likes to collapse whitespace on either side of the inline-block elements.
+// Ems because we're attempting to match the width of a space character. Left
+// version is for form buttons, which typically come after other elements, and
+// right version is for icons, which come before. Applying both is ok, but it will
+// mean that space between those elements will be .6em (~2 space characters) in IE7,
+// instead of the 1 space in other browsers.
+@mixin ie7-restore-left-whitespace {
+  *margin-left: .3em;
+
+  &:first-child {
+    *margin-left: 0;
+  }
+}
+
+@mixin ie7-restore-right-whitespace {
+  *margin-right: .3em;
+
+  &:last-child {
+    *margin-left: 0;
+  }
+}
+
+// Sizing shortcuts
+// -------------------------
+@mixin size($height: 5px, $width: 5px) {
+  width: $width;
+  height: $height;
+}
+@mixin square($size: 5px) {
+  @include size($size, $size);
+}
+
+// Placeholder text
+// -------------------------
+@mixin placeholder($color: $placeholderText) {
+  :-moz-placeholder {
+    color: $color;
+  }
+  ::-webkit-input-placeholder {
+    color: $color;
+  }
+}
+
+// Text overflow
+// -------------------------
+// Requires inline-block or block for proper styling
+@mixin text-overflow() {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+
+
+// FONTS
+// --------------------------------------------------
+
+@mixin font-family-serif {
+  font-family: Georgia, "Times New Roman", Times, serif;
+}
+@mixin font-family-sans-serif {
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+}
+@mixin font-family-monospace {
+  font-family: Menlo, Monaco, "Courier New", monospace;
+}
+@mixin font-shorthand($size: $baseFontSize, $weight: normal, $lineHeight: $baseLineHeight) {
+  font-size: $size;
+  font-weight: $weight;
+  line-height: $lineHeight;
+}
+@mixin font-serif($size: $baseFontSize, $weight: normal, $lineHeight: $baseLineHeight) {
+  @include font-family-serif;
+  @include font-shorthand ($size, $weight, $lineHeight);
+}
+@mixin font-sans-serif($size: $baseFontSize, $weight: normal, $lineHeight: $baseLineHeight) {
+  @include font-family-sans-serif;
+  @include font-shorthand($size, $weight, $lineHeight);
+}
+@mixin font-monospace($size: $baseFontSize, $weight: normal, $lineHeight: $baseLineHeight) {
+  @include font-family-monospace;
+  @include font-shorthand($size, $weight, $lineHeight);
+}
+
+
+
+// GRID SYSTEM
+// --------------------------------------------------
+
+// Site container
+// -------------------------
+@mixin container-fixed {
+  width: $gridRowWidth;
+  margin-left: auto;
+  margin-right: auto;
+  @include legacy-pie-clearfix;
+}
+
+// Le grid system
+// -------------------------
+// Setup the mixins to be used
+@mixin gridSystem-columns($gridGutterWidth, $gridColumnWidth, $gridRowWidth, $columns) {
+  width: ($gridColumnWidth * $columns) + ($gridGutterWidth * ($columns - 1));
+} 
+@mixin gridSystem-offset($gridColumnWidth, $gridGutterWidth, $columns) {
+  margin-left: ($gridColumnWidth * $columns) + ($gridGutterWidth * ($columns - 1)) + ($gridGutterWidth * 2);
+}
+@mixin gridSystem-gridColumn($gridGutterWidth) {
+  float: left;
+  margin-left: $gridGutterWidth;
+}
+
+// Take these values and mixins, and make 'em do their thang
+@mixin gridSystem-generate($gridColumns, $gridColumnWidth, $gridGutterWidth) {
+  // Row surrounds the columns
+  .row {
+    margin-left: $gridGutterWidth * -1;
+    @include legacy-pie-clearfix;
+  }
+  // Find all .span# classes within .row and give them the necessary properties for grid columns (supported by all browsers back to IE7, thanks @dhg)
+  [class*="span"] {
+    @include gridSystem-gridColumn($gridGutterWidth);
+  }
+  
+  @for $i from 1 through 12 {
+    @if $i < 12 {
+      // Default columns
+      .span#{$i} { @include gridSystem-columns($gridGutterWidth, $gridColumnWidth, $gridRowWidth, $i); }
+      // offset column options
+      .offset#{$i} { @include gridSystem-offset($gridColumnWidth, $gridGutterWidth, $i); }
+    } @else {
+      .span#{$i}, .container { @include gridSystem-columns($gridGutterWidth, $gridColumnWidth, $gridRowWidth, $i); }
+    }
+  }
+}
+
+// Fluid grid system
+// -------------------------
+// Setup the mixins to be used
+@mixin fluidGridSystem-columns($fluidGridGutterWidth, $fluidGridColumnWidth, $columns) {
+  width: ($fluidGridColumnWidth * $columns) + ($fluidGridGutterWidth * ($columns - 1));
+}
+@mixin fluidGridSystem-gridColumn($fluidGridGutterWidth) {
+  float: left;
+  margin-left: $fluidGridGutterWidth;
+}
+
+// Take these values and mixins, and make 'em do their thang
+@mixin fluidGridSystem-generate($gridColumns, $fluidGridColumnWidth, $fluidGridGutterWidth) {
+  // Row surrounds the columns
+  .row-fluid {
+    width: 100%;
+    @include legacy-pie-clearfix;
+
+    // Find all .span# classes within .row and give them the necessary properties for grid columns (supported by all browsers back to IE7, thanks @dhg)
+    > [class*="span"] {
+      @include fluidGridSystem-gridColumn($fluidGridGutterWidth);
+    }
+    > [class*="span"]:first-child {
+      margin-left: 0;
+    }
+    // Default Columns
+    @for $i from 1 through 12 {
+      > .span#{$i} { @include fluidGridSystem-columns($fluidGridGutterWidth, $fluidGridColumnWidth, $i); }
+    }
+  }
+}
+
+// Input grid system
+// -------------------------
+@mixin inputGridSystem-inputColumns($gridGutterWidth, $gridColumnWidth, $gridRowWidth, $columns) {
+  width: (($gridColumnWidth) * $columns) + ($gridGutterWidth * ($columns - 1)) - 10;
+}
+@mixin inputGridSystem-generate($gridColumns, $gridColumnWidth, $gridGutterWidth) {
+  input,
+  textarea,
+  .uneditable-input {
+    @for $i from 1 through 12 {
+      &.span#{$i} { @include inputGridSystem-inputColumns($gridGutterWidth, $gridColumnWidth, $gridRowWidth, $i); }
+    }
+  }
+}
+
+// Make a Grid
+// -------------------------
+// Use makeRow and makeColumn to assign semantic layouts grid system behavior
+@mixin makeRow {
+  margin-left: $gridGutterWidth * -1;
+  @include legacy-pie-clearfix;
+}
+@mixin makeColumn($columns: 1) {
+  float: left;
+  margin-left: $gridGutterWidth;
+  width: ($gridColumnWidth * $columns) + ($gridGutterWidth * ($columns - 1));
+}
+
+
+
+// Form field states (used in _forms.scss)
+// --------------------------------------------------
+
+// Mixin for form field states
+@mixin formFieldState($textColor: #555, $borderColor: #ccc, $backgroundColor: #f5f5f5) {
+  // Set the text color
+  > label,
+  .help-block,
+  .help-inline {
+    color: $textColor;
+  }
+  // Style inputs accordingly
+  input,
+  select,
+  textarea {
+    color: $textColor;
+    border-color: $borderColor;
+    &:focus {
+      border-color: darken($borderColor, 10%);
+      @include box-shadow(0 0 6px lighten($borderColor, 20%));
+    }
+  }
+  // Give a small background color for input-prepend/-append
+  .input-prepend .add-on,
+  .input-append .add-on {
+    color: $textColor;
+    background-color: $backgroundColor;
+    border-color: $textColor;
+  }
+}
+
+
+
+// CSS3 PROPERTIES
+// --------------------------------------------------
+// Almost all css3 properties included on compass CSS3 module
+// This will only set default variable for each CSS3 properties
+
+// Border Radius
+$default-border-radius: 5px;
+
+// Drop Shadows
+$default-box-shadow-color: rgba(0,0,0,.25);
+$default-box-shadow-h-offset: 0;
+$default-box-shadow-v-offset: 1px;
+$default-box-shadow-blur: 3px;
+
+// Transitions
+
+// Transformations
+// Rotate      - Use rotate() mixin
+// Scale       - Use scale() mixin
+// Translate   - Use translate() mixin
+// Skew        - Use skew() mixin
+// Translate3d - Use translate3d() mixin
+
+// Background clipping
+// Use background-clip() mixin
+
+// Background sizing
+// Use background-size() mixin
+
+// Box sizing
+// use box-sizing() mixin
+
+// User select
+// For selecting text on the page
+@mixin user-select($select) {
+  // Options: none, auto, text
+  -webkit-user-select: $select;
+     -moz-user-select: $select;
+       -o-user-select: $select;
+          user-select: $select;
+}
+
+// Resize anything
+@mixin resizable($direction: both) {
+  resize: $direction; // Options: horizontal, vertical, both
+  overflow: auto; // Safari fix
+}
+
+// CSS3 Content Columns
+@mixin content-columns($columnCount, $columnGap: $gridColumnGutter) {
+  @include column-count($columnCount);
+  @include column-gap($columnGap);
+}
+
+// Opacity
+// Use opacity() mixin
+
+
+
+// BACKGROUNDS
+// --------------------------------------------------
+
+// Add an alphatransparency value to any background or border color (via Elyse Holladay)
+@mixin transculent-background($color: $white, $alpha: 1 ) {
+  background-color: hsla(hue($color), saturation($color), lightness($color), $alpha);
+}
+@mixin transculent-border($color: $white, $alpha: 1) {
+  border-color: hsla(hue($color), saturation($color), lightness($color), $alpha);
+  @include background-clip(padding-box);
+}
+
+// Gradient Bar Colors for buttons and alerts
+@mixin gradientBar($primaryColor, $secondaryColor) {
+  @include gradient-vertical($primaryColor, $secondaryColor);
+  border-color: $secondaryColor $secondaryColor darken($secondaryColor, 15%);
+  border-color: rgba(0,0,0,.1) rgba(0,0,0,.1) fade-in(rgba(0,0,0,.1), 0.15);
+}
+
+// Gradients
+@mixin gradient-horizontal($startColor: #555, $endColor: #333) {
+  background-color: $endColor;
+  background-repeat: repeat-x;
+  @include background-image(linear-gradient(left, $startColor, $endColor));
+}
+@mixin gradient-vertical($startColor: #555, $endColor: #333) {
+  background-color: mix($startColor, $endColor, 60%);
+  background-repeat: repeat-x;
+  @include background-image(linear-gradient(top, $startColor, $endColor)); 
+}
+@mixin gradient-directional($startColor: #555, $endColor: #333, $deg: 45deg) {
+  background-color: $endColor;
+  background-repeat: repeat-x;
+  @include background-image(linear-gradient($deg, $startColor, $endColor));   
+}
+@mixin gradient-vertical-three-colors($startColor: #00b3ee, $midColor: #7a43b6, $colorStop: 50%, $endColor: #c3325f) {
+  background-color: mix($midColor, $endColor, 80%);
+  background-repeat: no-repeat;
+  @include background-image(linear-gradient($startColor, $midColor $colorStop, $endColor));
+}
+@mixin gradient-radial($innerColor: #555, $outerColor: #333) {
+  background-color: $outerColor;
+  background-repeat: no-repeat;
+  @include background-image(radial-gradient(circle, $innerColor, $outerColor));
+}
+@mixin gradient-striped($color, $angle: -45deg) {
+  background-color: $color;
+  @include background-image(
+    linear-gradient(
+      $angle, 
+      rgba(255,255,255,.15) 25%, 
+      rgba(255,255,255,0) 25%, 
+      rgba(255,255,255,0) 50%, 
+      rgba(255,255,255,.15) 50%, 
+      rgba(255,255,255,.15) 75%, 
+      rgba(255,255,255,0) 75%, 
+      rgba(255,255,255,0)
+    )
+  );
+}
+// Reset filters for IE
+@mixin reset-filter {
+  filter: progid:DXImageTransform.Microsoft.gradient(enabled = false);
+}
+
+
+// Mixin for generating button backgrounds
+// ---------------------------------------
+@mixin buttonBackground($startColor, $endColor) {
+  // gradientBar will set the background to a pleasing blend of these, to support IE<=9
+  @include gradientBar($startColor, $endColor);
+  @include reset-filter;
+
+  // in these cases the gradient won't cover the background, so we override
+  &:hover, &:active, &.active, &.disabled, &[disabled] {
+    background-color: $endColor;
+  }
+
+  // IE 7 + 8 can't handle box-shadow to show active, so we darken a bit ourselves
+  &:active,
+  &.active {
+    background-color: darken($endColor, 10%) \9;
+  }
+}
+
+
+// COMPONENT MIXINS
+// --------------------------------------------------
+
+// POPOVER ARROWS
+// -------------------------
+// For tipsies and popovers
+@mixin popoverArrow-top($arrowWidth: 5px) {
+  bottom: 0;
+  left: 50%;
+  margin-left: -$arrowWidth;
+  border-left: $arrowWidth solid transparent;
+  border-right: $arrowWidth solid transparent;
+  border-top: $arrowWidth solid $black;
+}
+@mixin popoverArrow-left($arrowWidth: 5px) {
+  top: 50%;
+  right: 0;
+  margin-top: -$arrowWidth;
+  border-top: $arrowWidth solid transparent;
+  border-bottom: $arrowWidth solid transparent;
+  border-left: $arrowWidth solid $black;
+}
+@mixin popoverArrow-bottom($arrowWidth: 5px) {
+  top: 0;
+  left: 50%;
+  margin-left: -$arrowWidth;
+  border-left: $arrowWidth solid transparent;
+  border-right: $arrowWidth solid transparent;
+  border-bottom: $arrowWidth solid $black;
+}
+@mixin popoverArrow-right($arrowWidth: 5px) {
+  top: 50%;
+  left: 0;
+  margin-top: -$arrowWidth;
+  border-top: $arrowWidth solid transparent;
+  border-bottom: $arrowWidth solid transparent;
+  border-right: $arrowWidth solid $black;
+}
